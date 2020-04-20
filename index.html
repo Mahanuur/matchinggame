@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css?family=Montserrat&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Belleza&display=swap"
+      rel="stylesheet"
+    />
+    <script src="main.js"></script>
+    <script>
+var score = 0,
+  timerr = 0,
+  flag = 0;
+
+var source = [
+"s1.jpg","s2.jpg","s3.jpg","s4.jpg","s5.jpg","s6.jpg"
+  
+];
+
+var target = [
+  "t1.jpg","t2.jpg","t3.jpg","t4.jpg","t5.jpg","t6.jpg"
+];
+
+$(document).ready(function () {
+    $(".restart").hide();
+    $(".sourceimg").hide();
+    $(".targett").hide();
+    
+  var selected = localStorage.getItem("selected");
+  if (selected) {
+    $(".game").val(selected); 
+  }
+
+  
+  var counter1 = localStorage.getItem("counter");
+  if (counter1) {
+    timerr = counter1;
+  }
+
+  $(".button").click(function () {
+    
+    $(".sourceimg").show();
+    $(".targett").show();
+    $(".scorecount").show();
+    $(timer).show();
+            });
+  $("select.game").change(function () {
+    localStorage.setItem("selected", $(this).val());
+    var Level = $(this).children("option:selected").text();
+    var counter = Level.slice(10, -1);
+    localStorage.setItem("counter", counter);
+    location.reload();
+  });
+
+  var loss = new Audio("sad.mp3");
+  var win = new Audio("wow.mp3");
+
+  var suffleArray = suffle(source);
+  $.each(suffleArray, function (index, value) {
+    var sourceval = value.slice(6, -5);
+
+    $("<div ><img style='width:100%;height:100%;' src='" + value + "' /></div>")
+      .appendTo(".sourceimg")
+      .draggable({
+        revert: true,
+        scope: sourceval.toLocaleLowerCase(),
+      });
+  });
+
+  var suffletarget = suffle(target);
+  $.each(suffletarget, function (index, value) {
+    var targetval = value.slice(6, -4);
+
+    $("<div ><img style='width:100%;height:100%;' src='" + value + "' /></div>")
+      .appendTo(".targett")
+      .droppable({
+        scope: targetval.toLocaleLowerCase(),
+
+        drop: function (event, ui) {
+            
+          win.play();
+          $(ui.draggable).append($(this).text());
+          check = 0;
+          $(this).toggle("bounce", { times: 3 }, "fast");
+          score = score + 1;
+          $(this).hide("puff", "1000");
+
+
+   if (score  == target.length) {
+            //game stop condition when win
+            score_save(score);
+            $(".targett").hide();
+            $(".restart").show();
+            $(".scorecount").hide();
+            $(".scores").addClass("highlight");
+            $("p").text("congratulations! You did it");
+            flag = 1;
+            $(".restart").click(function () {
+              location.reload();
+            });
+          }
+        },
+      });
+  });
+});
+
+function suffle(array) {
+  return array.sort(function () {
+    return 0.5 - Math.random();
+  });
+}
+
+function score_save(score) {
+  //alert("hello");
+  var db = openDatabase("Game", "1.0", "game", 2 * 1024 * 1024);
+  db.transaction(function (tx) {
+    tx.executeSql("CREATE TABLE IF NOT EXISTS LOGS (id AUTO_INCREMENT, log)");
+    tx.executeSql("INSERT INTO LOGS (log) VALUES (?)", [score]);
+  });
+
+  db.transaction(function (tx) {
+    tx.executeSql(
+      "SELECT * FROM LOGS",
+      [],
+      function (tx, results) {
+        var len = results.rows.length,
+          i;
+
+        for (i = 0; i < len; i++) {
+         
+        }
+      },
+      null
+    );
+  });
+}
+
+
+    </script>
+  </head>
+  <body>
+      
+    <div class="game">
+      <div class="option">
+        <label>Choose a level</label>
+        <select class="levels">
+          <option value="l1" selected="selected">Level 1 - 120s</option>
+          <option value="l2">Level 2 - 100s</option>
+          <option value="l3">Level 3 - 60s</option>
+          <option value="l4">Level 4 - 40s</option>
+          <option value="l5">Level 5 - 20s</option>
+        </select>
+      </div>
+
+      <div class="scorecount"></div>
+      <div id="scores">Score:</div>
+    </div>
+
+    <div class="button">
+      <button>play</button>
+    </div>
+
+    <div class="all">
+      <div class="sourceimg">
+       
+      </div>
+
+      <p></p>
+      <div class="restart">
+        <button>RESTART</button>
+      </div>
+      <div class="targett">
+      
+      </div>
+    </div>
+  </body>
+</html>
+<style>
+    option{
+        color:darkkhaki;
+        width: 80%;
+        
+
+    }
+    body{
+        background-color: rgb(122, 162, 165);
+        align-text: center;
+        font-size: x-large;
+    }
+    .game{
+        text-align: center;
+        padding-top: 10%;
+        
+    }
+    button{
+        color: rgb(14, 100, 96);
+        
+    }
+    .scorecount,.button,.restart{
+        text-align: center;
+        padding-top: 20px;
+    }
+    .sourceimg div img,.targett div img{
+       border: solid;
+        
+    }
+    .sourceimg div,.targett div {
+       float:left;
+       width:70%;
+       height: 40%;
+       float: left;
+  width: 150px;
+  height: 150px;
+  
+  cursor: pointer;
+  text-align: center;
+  margin: 20px;
+  background-color:paleturquoise
+
+        
+    }
+    .sourceimg ,.targett  {
+       float:left;
+       width:70%;
+       height: 40%;
+       float: left;
+  width: 90%;
+  height: 40%;
+  margin: 12px;
+  padding-top: 20px;
+  padding-left: 30px;
+  padding-bottom: 20px;
+  
+  background-color:lightslategray
+       
+        
+    }
+
+   
+</style>
